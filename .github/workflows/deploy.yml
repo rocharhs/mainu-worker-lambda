@@ -6,7 +6,7 @@ on:
 
 env:
   ECR_REPOSITORY: mainu/main-worker
-  LAMBDA_FUNCTION_NAME: my-fastapi-lambda
+  LAMBDA_FUNCTION_NAME: main-worker-lambda
 
 jobs:
   deploy:
