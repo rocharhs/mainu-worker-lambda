@@ -49,31 +49,30 @@ def handler(event, context):
             print(f"Processando Mensagem ID: {message_id}")
             print(f"Conteúdo do Body: {body}")
 
-            # response = bedrock_client.converse(
-            #     modelId=LLM_MODEL,
-            #     system=[
-            #         {
-            #             "text": "Seja sucinto, não use emojis, responda em portugues"
-            #         }
-            #     ],
-            #     messages=[
-            #         {
-            #             "role":"user",
-            #             "content":[{"text":incoming_text}]
-            #         }
-            #     ],
-            #     inferenceConfig={
-            #         "maxTokens": 200,
-            #         "temperature": 1e-5
-            #     }
-            # )
-            # latency = response["metrics"]["latencyMs"]
-            # input_tokens = response["usage"]["inputTokens"]
-            # output_tokens = response["usage"]["outputTokens"]
-            # logger.info(f"took: {latency}ms for {input_tokens} input_tokens/{output_tokens} output_tokens")
+            response = bedrock_client.converse(
+                modelId=LLM_MODEL,
+                system=[
+                    {
+                        "text": "Seja sucinto, não use emojis, responda em portugues"
+                    }
+                ],
+                messages=[
+                    {
+                        "role":"user",
+                        "content":[{"text":incoming_text}]
+                    }
+                ],
+                inferenceConfig={
+                    "maxTokens": 200,
+                    "temperature": 1e-5
+                }
+            )
+            latency = response["metrics"]["latencyMs"]
+            input_tokens = response["usage"]["inputTokens"]
+            output_tokens = response["usage"]["outputTokens"]
+            logger.info(f"took: {latency}ms for {input_tokens} input_tokens/{output_tokens} output_tokens")
 
-            # response_text = response["output"]["message"]["content"][0]["text"]
-            response_text = f"again echo : {incoming_text}"
+            response_text = response["output"]["message"]["content"][0]["text"]
 
             response_message = client.messages.create(
                 body=response_text,
