@@ -80,6 +80,8 @@ def handler(event, context):
                 to=user_number
             )
 
+            logger.info(f'body:{response_text} from: {TWILIO_WHATSAPP_NUMBER} to: {user_number}')
+
             print("Message sent:", response_message.sid)
     else:
         print("Nenhum registro SQS encontrado no evento.")
