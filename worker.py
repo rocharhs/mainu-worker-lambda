@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 import boto3
 from botocore.exceptions import ClientError
@@ -83,6 +83,10 @@ def handler(event, context):
             user_number = body["from"]
 
             timestamp = datetime.now(timezone.utc).isoformat()
+            expires_at = int(
+                (datetime.now(timezone.utc) + timedelta(hours=24))
+                .timestamp()
+            )
 
             print(f"Processando Mensagem ID: {message_id}")
             print(f"Conteúdo do Body: {body}")
@@ -94,6 +98,7 @@ def handler(event, context):
                         "messageSid": message_id,
                         "status": "PROCESSING",
                         "createdAt": timestamp,
+                        "expiresAt": expires_at
                     },
                     ConditionExpression="attribute_not_exists(messageSid)"
                 )
