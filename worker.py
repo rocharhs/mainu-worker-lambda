@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timezone, timedelta
 import logging
+import requests
 import boto3
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Attr
@@ -40,6 +41,20 @@ LLM_MODEL = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+
+def send_typing_indicator(to: str):
+    """Envia o 'digitando...' para o usuário via Twilio."""
+    try:
+        client.messages.create(
+            to=to,
+            from_=TWILIO_WHATSAPP_NUMBER,
+            persistent_action=["typing_on"],
+            body=""
+        )
+    except Exception as e:
+        print(f"[typing_indicator] Falhou para {to}: {e}")
+
 
 def generate_answer(incoming_text):
     response = bedrock_client.converse(
@@ -114,6 +129,8 @@ def handler(event, context):
                 )
 
                 # We successfully claimed this message
+                send_typing_indicator(user_number)
+
                 response_text = generate_answer(incoming_text)
 
                 completion_timestamp = datetime.now(timezone.utc).isoformat()
