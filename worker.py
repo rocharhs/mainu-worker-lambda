@@ -33,7 +33,7 @@ TWILIO_WHATSAPP_NUMBER= ssm.get_parameter(
 
 IDEMPOTENCY_TABLE = ssm.get_parameter(
     Name="/mainu/twilio/idempotency_table"
-)
+)["Parameter"]["Value"]
 table = dynamodb.Table(IDEMPOTENCY_TABLE)
 
 LLM_MODEL = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
