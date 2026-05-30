@@ -120,9 +120,10 @@ def handler(event, context):
 
                 table.update_item(
                     Key={"messageSid": message_id},
-                    UpdateExpression="SET #s = :s, response = :r, completedAt = :t",
+                    UpdateExpression="SET #s = :s, #r = :r, completedAt = :t",
                     ExpressionAttributeNames={
-                        "#s": "status"
+                        "#s": "status",
+                        "#r": "response"
                     },
                     ExpressionAttributeValues={
                         ":s": "COMPLETED",
