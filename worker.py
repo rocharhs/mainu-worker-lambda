@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 import logging
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Attr
 
 from twilio.rest import Client
 
@@ -91,16 +92,25 @@ def handler(event, context):
             print(f"Processando Mensagem ID: {message_id}")
             print(f"Conteúdo do Body: {body}")
 
+            item = {
+                "messageSid": message_id,
+                "status": "PROCESSING",
+                "createdAt": timestamp,
+                "expiresAt": expires_at
+            }
+
+            logger.info(item)
+            logger.info(type(item["messageSid"]))
+            logger.info(type(item["status"]))
+            logger.info(type(item["createdAt"]))
+            logger.info(type(item["expiresAt"]))
+
+
             # Verifica se mensagem já foi processada
             try:
                 table.put_item(
-                    Item={
-                        "messageSid": message_id,
-                        "status": "PROCESSING",
-                        "createdAt": timestamp,
-                        "expiresAt": expires_at
-                    },
-                    ConditionExpression="attribute_not_exists(messageSid)"
+                    Item=item,
+                    ConditionExpression=Attr("messageSid").not_exists()
                 )
 
                 # We successfully claimed this message
