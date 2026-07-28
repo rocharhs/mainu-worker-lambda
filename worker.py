@@ -85,7 +85,7 @@ def handler(event, context):
             }
 
             logger.info(item)
-            logger.info(type(item["messageSid"]))
+            logger.info(type(item["messageId"]))
             logger.info(type(item["status"]))
             logger.info(type(item["createdAt"]))
             logger.info(type(item["expiresAt"]))
