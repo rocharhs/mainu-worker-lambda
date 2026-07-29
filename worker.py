@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime, timezone, timedelta
 import logging
@@ -15,12 +16,33 @@ dynamodb = boto3.resource("dynamodb")
 
 LLM_MODEL = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
+WS_MANAGEMENT_API = os.getenv("WS_MANAGEMENT_API")
+
+apigw_management = boto3.client(
+    "apigatewaymanagementapi",
+    endpoint_url=WS_MANAGEMENT_API
+)
 
 # IDEMPOTENCY_TABLE = ssm.get_parameter(
 #     Name="/mainu/twilio/idempotency_table"
 # )["Parameter"]["Value"]
 # table = dynamodb.Table(IDEMPOTENCY_TABLE)
 sessions_table = dynamodb.Table('mainu-sessions')
+
+def send_to_client(connection_id, payload: dict):
+    """Envia uma mensagem JSON para o cliente conectado via WebSocket."""
+    try:
+        apigw_management.post_to_connection(
+            ConnectionId=connection_id,
+            Data=json.dumps(payload).encode("utf-8")
+        )
+        return True
+    except apigw_management.exceptions.GoneException:
+        logger.warning(f"Conexão {connection_id} não existe mais (GoneException). Limpando sessão.")
+        return False
+    except ClientError as e:
+        logger.error(f"Erro ao enviar para {connection_id}: {e}")
+        return False
 
 def generate_answer(incoming_text):
     response = bedrock_client.converse(
@@ -90,6 +112,12 @@ def handler(event, context):
             logger.info(type(item["expiresAt"]))
             logger.info(content)
             logger.info(f'Connected at {connection_id}')
+
+            ws_payload = {
+                "messageId": message_id,
+                "status": "processando"
+            }
+            send_to_client(connection_id, ws_payload)
 
 
             # Verifica se mensagem já foi processada
