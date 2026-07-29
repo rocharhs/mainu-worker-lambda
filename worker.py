@@ -20,6 +20,7 @@ EMBEDDING_MODEL = "amazon.titan-embed-text-v2:0"
 #     Name="/mainu/twilio/idempotency_table"
 # )["Parameter"]["Value"]
 # table = dynamodb.Table(IDEMPOTENCY_TABLE)
+sessions_table = dynamodb.Table('mainu-sessions')
 
 def generate_answer(incoming_text):
     response = bedrock_client.converse(
@@ -54,19 +55,13 @@ def handler(event, context):
     # Verifica se o evento veio mesmo do SQS e tem registros
     if 'Records' in event:
         print(f"Total de mensagens recebidas neste lote: {len(event['Records'])}")
-        
-        # message_body = json.dumps({
-        #     "visitorId": visitor_id,
-        #     'sessionId': session_id,
-        #     'environmentId': environment_id,        
-        #     "content": content
-        # })
 
         for record in event['Records']:
             body = json.loads(record.get('body'))
 
             message_id = body['messageId']
             content = body['content']
+            session_id = body['sessionId']
 
             timestamp = datetime.now(timezone.utc).isoformat()
             expires_at = int(
@@ -83,6 +78,10 @@ def handler(event, context):
                 "createdAt": timestamp,
                 "expiresAt": expires_at
             }
+            # Recupera id de conexão dado id de sessão
+            response = sessions_table.get_item(Key={"session_id":session_id})
+            item = response.get("Item")
+            connection_id = item.get("connection_id")
 
             logger.info(item)
             logger.info(type(item["messageId"]))
@@ -90,6 +89,7 @@ def handler(event, context):
             logger.info(type(item["createdAt"]))
             logger.info(type(item["expiresAt"]))
             logger.info(content)
+            logger.info(f'Connected at {connection_id}')
 
 
             # Verifica se mensagem já foi processada
