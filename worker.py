@@ -80,8 +80,8 @@ def handler(event, context):
             }
             # Recupera id de conexão dado id de sessão
             response = sessions_table.get_item(Key={"session_id":session_id})
-            item = response.get("Item")
-            connection_id = item.get("connection_id")
+            session_item = response.get("Item")
+            connection_id = session_item.get("connection_id")
 
             logger.info(item)
             logger.info(type(item["messageId"]))
