@@ -119,9 +119,11 @@ def handler(event, context):
             }
             send_to_client(connection_id, ws_payload)
 
+            response_text = generate_answer(content)
+
             ws_payload = {
                 "type": "ai_message",
-                "content": f"Recebi a mensagem: {content}"
+                "content": response_text
             }
             send_to_client(connection_id, ws_payload)
 
